@@ -6,149 +6,176 @@
 //
 
 import SwiftUI
-import Combine
 
 struct ProductListView: View {
-    @ObservedObject var viewModel : ProductListViewModel
-    @Binding var selectedProduct : Product?
 
-    let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    @ObservedObject var viewModel: ProductListViewModel
+    @Binding var selectedProduct: Product?
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    // MARK: - Colonnes
+    // iPad  : 5 colonnes
+    // iPhone: 2 colonnes
+
+    private var columns: [GridItem] {
+        let count = horizontalSizeClass == .regular  ? 5 : 2
+        return Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count : count)
+    }
+
+    // MARK: - Body
 
     var body: some View {
-        ScrollView {
+        Group {
             if viewModel.isLoading {
-                ProgressView ("Chargement...")
-                    .padding(.top, 50)
-                    .accessibilityLabel("Chargement en cours")
+                loadingView
             } else if let error = viewModel.errorMessage {
-                Text(error)
-                    .foregroundStyle(.red)
-                    .padding()
-                    .accessibilityLabel(error)
+                errorView(message: error)
+            } else if viewModel.sortedCategories.isEmpty && !viewModel.searchText.isEmpty {
+                emptySearchView
             } else {
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    ForEach(viewModel.categoryOrder,id: \.self) {
-                        category in
-                        if let items = viewModel.groupedProducts [category], !items.isEmpty{
-                            Section {
-                                LazyVGrid(columns: columns, spacing: 12) {
-                                    ForEach(items) { product in
-                                        ProductCardView(product: product)
-                                            .onTapGesture {
-                                                selectedProduct = product
-                                            }
-                                            .accessibilityElement(children: .combine)
-                                            .accessibilityLabel("\(product.name), \(product.price)€")
-                                            .accessibilityHint("Double-Clic pour voir les détails")
-                                    }
-                                }
-                                .padding(.horizontal)
-                            } header: {
-                                Text(viewModel.categoryDisplayName(category))
-                                    .font(.title2.bold())
-                                    .padding(.horizontal)
-                                    .accessibilityAddTraits(.isHeader)
-                            }
-                        }
-                    }
-                }
-                .padding(.top)
+                productList
             }
         }
-        .navigationTitle("Joiefull")
+        // Titre et barre de recherche gérés dans ContentView pour iPad
+        // et ici pour iPhone
+        .ifCondition(horizontalSizeClass != .regular) { view in
+            view
+                .navigationTitle("Joiefull")
+                .navigationBarTitleDisplayMode(.large)
+                .searchable(
+                    text: $viewModel.searchText,
+                    placement: .navigationBarDrawer(displayMode: .always),
+                    prompt: "Rechercher un article"
+                )
+        }
         .task {
-            await viewModel.loadProducts()
+            if viewModel.groupedProducts.isEmpty {
+                await viewModel.loadProducts()
+            }
+        }
+    }
+
+    // MARK: - Product List
+
+    private var productList: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 24) {
+                ForEach(viewModel.sortedCategories, id: \.self) { category in
+                    if let products = viewModel.filteredGroupedProducts[category] {
+                        CategorySectionView(
+                            category: category,
+                            products: products,
+                            columns: columns,
+                            selectedProduct: $selectedProduct
+                        )
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .background(Color.joieBackground)
+    }
+
+    // MARK: - Loading
+
+    private var emptySearchView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 48))
+                .foregroundStyle(Color.joieOrangeSoft)
+                .accessibilityHidden(true)
+            Text("Aucun résultat pour \"\(viewModel.searchText)\"")
+                .font(.joieBody)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: - Loading
+
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.5)
+
+            Text("Chargement des articles...")
+                .font(.joieBody)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityLabel("Chargement en cours")
+    }
+
+    // MARK: - Error
+
+    private func errorView(message: String) -> some View {
+        VStack(spacing: 20) {
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 48))
+                .foregroundStyle(Color.joieOrange)
+                .accessibilityHidden(true)
+
+            Text(message)
+                .font(.joieBody)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+
+            Button("Réessayer") {
+                Task { await viewModel.loadProducts() }}
+                .buttonStyle(.borderedProminent)
+                .tint(Color.joieOrange)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+// MARK: - View extension helper
+
+extension View {
+    @ViewBuilder
+    func ifCondition<Content: View>(
+        _ condition: Bool,
+        transform: (Self) -> Content
+    ) -> some View {
+        if condition {transform(self)
+        } else {
+            self
         }
     }
 }
 
-#Preview {
-    // Données statiques réalistes pour la preview
-    let staticProducts = [
-        Product(
-            id: 0,
-            picture: ProductPicture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/accessories/1.jpg", description: "Sac à main orange posé sur une poignée de porte"),
-            name: "Sac à main orange",
-            category: "ACCESSORIES",
-            likes: 56,
-            price: 69.99,
-            originalPrice: 69.99
-        ),
-        Product(
-            id: 2,
-            picture: ProductPicture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/shoes/1.jpg", description: "Modèle femme qui pose dans la rue en bottes de pluie noires"),
-            name: "Bottes noires pour l'automne",
-            category: "SHOES",
-            likes: 4,
-            price: 99.99,
-            originalPrice: 119.99
-        ),
-        Product(
-            id: 10,
-            picture: ProductPicture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/accessories/3.jpg", description: "Pendentif rond bleu dans la main d'une femme"),
-            name: "Pendentif bleu pour femme",
-            category: "ACCESSORIES",
-            likes: 70,
-            price: 19.99,
-            originalPrice: 29.99
-        ),
-        Product(
-            id: 3,
-            picture: ProductPicture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/1.jpg", description: "Homme en costume et veste de blazer qui regarde la caméra"),
-            name: "Blazer marron",
-            category: "TOPS",
-            likes: 120,
-            price: 89.99,
-            originalPrice: 99.99
-        ),
-        Product(
-            id: 1,
-            picture: ProductPicture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/bottoms/1.jpg", description: "Modèle femme qui porte un jean et un haut jaune"),
-            name: "Jean pour femme",
-            category: "BOTTOMS",
-            likes: 55,
-            price: 49.99,
-            originalPrice: 59.99
-        ),
-        Product(
-            id: 78,
-            picture: ProductPicture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/bottoms/1.jpg", description: "Modèle femme qui porte un jean et un haut jaune"),
-            name: "Jean pour femme",
-            category: "BOTTOMS",
-            likes: 55,
-            price: 49.99,
-            originalPrice: 59.99
-        ),
-        Product(
-            id: 4,
-            picture: ProductPicture(url: "https://exemple.com/watch.jpg", description: "Montre élégante"),
-            name: "Montre",
-            category: "ACCESSORIES",
-            likes: 203,
-            price: 129.99,
-            originalPrice: 149.99
-        ),
-    ]
+// MARK: - Preview
 
-    // ViewModel simplifié pour la preview
-    let previewViewModel: ProductListViewModel = {
-        let vm = ProductListViewModel(repository: PreviewProductRepository(products: staticProducts))
-        // On simule le chargement terminé
-        vm.isLoading = false
-        vm.products = staticProducts
-        return vm
-    }()
-
-    return NavigationStack {
-        ProductListView(viewModel: previewViewModel, selectedProduct: .constant(nil))
-    }
+#if DEBUG
+// DummyRepository dans #if DEBUG uniquement — ne compile pas en production
+private final class DummyRepository: ProductRepositoryProtocol {
+    func fetchProducts() async throws -> [Product] { [] }
 }
 
-// Repository pour la preview uniquement
-private struct PreviewProductRepository: ProductRepositoryProtocol {
-    let products: [Product]
-
-    func fetchProducts() async throws -> [Product] {
-        products // Retourne directement les données statiques
+struct ProductListView_Previews: PreviewProvider {
+    static var previews: some View {
+        let vm = ProductListViewModel(repository: DummyRepository())
+        vm.groupedProducts = [
+            .tops: [
+                Product(id: 3, name: "Blazer marron", category: .tops, likes: 15,
+                        price: 79.99, originalPrice: 79.99,
+                        picture: Product.Picture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/1.jpg",
+                                                 description: "Homme blazer")),
+                Product(id: 4, name: "Pull vert femme", category: .tops, likes: 15,
+                        price: 29.99, originalPrice: 39.99,
+                        picture: Product.Picture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/2.jpg",
+                                                 description: "Pull vert"))
+            ]
+        ]
+        return NavigationStack {
+            ProductListView(viewModel: vm, selectedProduct: .constant(nil))
+        }
+        .environmentObject(FavoritesStore())
     }
 }
+#endif
