@@ -149,33 +149,3 @@ extension View {
     }
 }
 
-// MARK: - Preview
-
-#if DEBUG
-// DummyRepository dans #if DEBUG uniquement — ne compile pas en production
-private final class DummyRepository: ProductRepositoryProtocol {
-    func fetchProducts() async throws -> [Product] { [] }
-}
-
-struct ProductListView_Previews: PreviewProvider {
-    static var previews: some View {
-        let vm = ProductListViewModel(repository: DummyRepository())
-        vm.groupedProducts = [
-            .tops: [
-                Product(id: 3, name: "Blazer marron", category: .tops, likes: 15,
-                        price: 79.99, originalPrice: 79.99,
-                        picture: Product.Picture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/1.jpg",
-                                                 description: "Homme blazer")),
-                Product(id: 4, name: "Pull vert femme", category: .tops, likes: 15,
-                        price: 29.99, originalPrice: 39.99,
-                        picture: Product.Picture(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/2.jpg",
-                                                 description: "Pull vert"))
-            ]
-        ]
-        return NavigationStack {
-            ProductListView(viewModel: vm, selectedProduct: .constant(nil))
-        }
-        .environmentObject(FavoritesStore())
-    }
-}
-#endif

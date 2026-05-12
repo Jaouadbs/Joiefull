@@ -39,27 +39,3 @@ struct CategorySectionView: View {
     }
 }
 
-// MARK: - Preview
-#if DEBUG
-#Preview {
-    let cols = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
-    let products = [
-        Product(id: 1, name: "Veste en jean", category: .tops, likes: 12,
-                price: 89.99, originalPrice: 89.99,
-                picture: Product.Picture(
-                    url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/1.jpg",
-                    description: "Veste en jean")),
-        Product(id: 15, name: "T-shirt Blanc", category: .tops, likes: 45,
-                price: 19.99, originalPrice: 24.99,
-                picture: Product.Picture(
-                    url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/2.jpg",
-                    description: "T-shirt blanc"))
-    ]
-    ScrollView {
-        CategorySectionView(category: .tops, products: products,
-                            columns: cols, selectedProduct: .constant(nil))
-        .padding()
-    }
-    .environmentObject(FavoritesStore())
-}
-#endif

@@ -118,18 +118,5 @@ struct ContentView: View {
         }
     }
 }
-#if DEBUG
-#Preview("iPhone") {
-    ContentView()
-        .environmentObject(FavoritesStore())
-        .environmentObject(RatingsStore())
-}
 
-#Preview("iPad", traits: .landscapeLeft) {
-    ContentView()
-        .environment(\.horizontalSizeClass, .regular)
-        .environmentObject(FavoritesStore())
-        .environmentObject(RatingsStore())
-}
-#endif
 

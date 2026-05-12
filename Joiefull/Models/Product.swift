@@ -55,7 +55,7 @@ struct Product: Identifiable, Codable, Equatable, Hashable {
 // MARK: - Computed properties
 
 extension Product {
-    // Description textuelle = alt text fourni par l'API
+    // Description textuelle = text fourni par l'API
     var productDescription: String {
         picture.description
     }

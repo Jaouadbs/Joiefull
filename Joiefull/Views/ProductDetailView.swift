@@ -250,42 +250,4 @@ struct StarRatingView: View {
     }
 }
 
-// MARK: - Preview
-#if DEBUG
-private let _disc = Product(id: 4, name: "Pull torsadé", category: .tops,
-    likes: 56, price: 69.99, originalPrice: 95.00,
-    picture: .init(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/2.jpg",
-                   description: "Femme dehors qui pose avec un pull en maille vert"))
-private let _full = Product(id: 3, name: "Blazer marron", category: .tops,
-    likes: 15, price: 79.99, originalPrice: 79.99,
-    picture: .init(url: "https://raw.githubusercontent.com/OpenClassrooms-Student-Center/Cr-ez-une-interface-dynamique-et-accessible-avec-SwiftUI/main/img/tops/1.jpg",
-                   description: "Homme en costume et veste de blazer qui regarde la caméra"))
 
-#Preview("Avec remise — iPhone") {
-    NavigationStack {
-        ProductDetailView(viewModel: ProductDetailViewModel(
-            product: _disc, favoritesStore: FavoritesStore(), ratingsStore: RatingsStore()))
-    }
-}
-#Preview("Sans remise — iPhone") {
-    NavigationStack {
-        ProductDetailView(viewModel: ProductDetailViewModel(
-            product: _full, favoritesStore: FavoritesStore(), ratingsStore: RatingsStore()))
-    }
-}
-#Preview("iPad", traits: .landscapeLeft) {
-    NavigationStack {
-        ProductDetailView(viewModel: ProductDetailViewModel(
-            product: _disc, favoritesStore: FavoritesStore(), ratingsStore: RatingsStore()))
-    }
-}
-struct StatefulPreviewWrapper<V, C: View>: View {
-    @State private var value: V
-    private let content: (Binding<V>) -> C
-    init(_ v: V, @ViewBuilder content: @escaping (Binding<V>) -> C) { _value = State(initialValue: v); self.content = content }
-    var body: some View { content($value) }
-}
-#Preview("StarRatingView") {
-    StatefulPreviewWrapper(0.0) { StarRatingView(rating: $0).padding() }
-}
-#endif
