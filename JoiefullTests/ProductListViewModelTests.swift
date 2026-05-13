@@ -31,7 +31,7 @@ final class ProductListViewModelTests: XCTestCase {
     // MARK: - Chargement des produits
 
 
-    func test_chargement_succes() async {
+    func test_loadProducts_success() async {
         mockRepo.stubbedProducts = MockData.tousLesProduits
 
         await sut.loadProducts()
@@ -41,7 +41,7 @@ final class ProductListViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isLoading)
     }
 
-    func test_chargement_erreurReseau() async {
+    func test_loadProducts_networkError() async {
         mockRepo.shouldThrow = true
 
         await sut.loadProducts()
@@ -50,7 +50,7 @@ final class ProductListViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.errorMessage)
     }
 
-    func test_chargement_appelle_repositoryUneFois() async {
+    func test_loadProducts_callsRepositoryOnce() async {
         await sut.loadProducts()
         XCTAssertEqual(mockRepo.fetchCallCount, 1)
     }
@@ -58,7 +58,7 @@ final class ProductListViewModelTests: XCTestCase {
 
     // MARK: - Groupement par catégorie
 
-    func test_groupement_categoriesCorrects() async {
+    func test_grouping_correctCategoriesPresent() async {
         mockRepo.stubbedProducts = MockData.tousLesProduits
 
         await sut.loadProducts()
@@ -71,7 +71,7 @@ final class ProductListViewModelTests: XCTestCase {
     }
 
     // MockData.produitsTops contient seulement 2 Hauts
-    func test_groupement_seulementLesTops() async {
+    func test_grouping_onlyTopsIncluded() async {
         mockRepo.stubbedProducts = MockData.produitsTops
 
         await sut.loadProducts()
@@ -83,7 +83,7 @@ final class ProductListViewModelTests: XCTestCase {
 
     // MARK: - Ordre des catégories
 
-    func test_ordre_categoriesTrieesCorrectement() async {
+    func test_ordering_categoriesSortedCorrectly() async {
         mockRepo.stubbedProducts = MockData.tousLesProduits
 
         await sut.loadProducts()
@@ -96,7 +96,7 @@ final class ProductListViewModelTests: XCTestCase {
 
     // MARK: - Recherche
 
-    func test_recherche_blazer_retourneUnSeulResultat() async {
+    func test_search_withSpecificTerm_returnsSingleResult() async {
         mockRepo.stubbedProducts = MockData.tousLesProduits
 
         await sut.loadProducts()
@@ -109,7 +109,7 @@ final class ProductListViewModelTests: XCTestCase {
         XCTAssertEqual(resultats.first?.name, MockData.blazer.name)
     }
 
-    func test_recherche_vide_retourneTout() async {
+    func test_search_emptyString_returnsAllProducts() async {
         mockRepo.stubbedProducts = MockData.tousLesProduits
 
         await sut.loadProducts()
@@ -119,7 +119,7 @@ final class ProductListViewModelTests: XCTestCase {
         XCTAssertEqual(total, MockData.tousLesProduits.count) // 5
     }
 
-    func test_recherche_sansResultat() async {
+    func test_search_noMatch_returnsEmpty() async {
         mockRepo.stubbedProducts = MockData.tousLesProduits
 
         await sut.loadProducts()

@@ -4,7 +4,6 @@
 //
 //  Created by Jaouad on 07/05/2026.
 // Ce fichier contient tous les produits fictifs utilisés dans les tests.
-// Avantage : si on veut changer une valeur, on la change ici UNE seule fois.
 
 import Foundation
 
