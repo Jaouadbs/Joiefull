@@ -32,7 +32,7 @@ final class ProductListViewModelTests: XCTestCase {
 
 
     func test_loadProducts_success() async {
-        mockRepo.stubbedProducts = MockData.tousLesProduits
+        mockRepo.stubbedProducts = MockData.allProducts
 
         await sut.loadProducts()
 
@@ -59,7 +59,7 @@ final class ProductListViewModelTests: XCTestCase {
     // MARK: - Groupement par catégorie
 
     func test_grouping_correctCategoriesPresent() async {
-        mockRepo.stubbedProducts = MockData.tousLesProduits
+        mockRepo.stubbedProducts = MockData.allProducts
 
         await sut.loadProducts()
 
@@ -84,7 +84,7 @@ final class ProductListViewModelTests: XCTestCase {
     // MARK: - Ordre des catégories
 
     func test_ordering_categoriesSortedCorrectly() async {
-        mockRepo.stubbedProducts = MockData.tousLesProduits
+        mockRepo.stubbedProducts = MockData.allProducts
 
         await sut.loadProducts()
 
@@ -97,7 +97,7 @@ final class ProductListViewModelTests: XCTestCase {
     // MARK: - Recherche
 
     func test_search_withSpecificTerm_returnsSingleResult() async {
-        mockRepo.stubbedProducts = MockData.tousLesProduits
+        mockRepo.stubbedProducts = MockData.allProducts
 
         await sut.loadProducts()
 
@@ -110,17 +110,17 @@ final class ProductListViewModelTests: XCTestCase {
     }
 
     func test_search_emptyString_returnsAllProducts() async {
-        mockRepo.stubbedProducts = MockData.tousLesProduits
+        mockRepo.stubbedProducts = MockData.allProducts
 
         await sut.loadProducts()
         sut.searchText = ""
 
         let total = sut.filteredGroupedProducts.values.flatMap { $0 }.count
-        XCTAssertEqual(total, MockData.tousLesProduits.count) // 5
+        XCTAssertEqual(total, MockData.allProducts.count) // 5
     }
 
     func test_search_noMatch_returnsEmpty() async {
-        mockRepo.stubbedProducts = MockData.tousLesProduits
+        mockRepo.stubbedProducts = MockData.allProducts
 
         await sut.loadProducts()
         sut.searchText = "XYZXYZ"

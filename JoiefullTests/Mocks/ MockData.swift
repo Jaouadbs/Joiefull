@@ -84,7 +84,7 @@ enum MockData {
     )
     
     // ── Liste complète de produits (pour tester le chargement de la liste)
-    static let tousLesProduits: [Product] = [
+    static let allProducts: [Product] = [
         blazer,
         pullEnPromo,
         sacMain,
